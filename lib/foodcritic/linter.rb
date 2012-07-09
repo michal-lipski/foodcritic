@@ -44,7 +44,8 @@ module FoodCritic
     # * `:exclude_paths` - Paths to exclude from linting
     #
     def check(cookbook_paths, options)
-
+      puts cookbook_paths
+      puts options
       cookbook_paths = sanity_check_cookbook_paths(cookbook_paths)
       options = setup_defaults(options)
 
@@ -53,10 +54,12 @@ module FoodCritic
         warnings = []; last_dir = nil; matched_rule_tags = Set.new
 
         load_rules
-
+        puts "files to process = #{files_to_process(cookbook_paths, options[:exclude_paths])}"
         # Loop through each file to be processed and apply the rules
         files_to_process(cookbook_paths, options[:exclude_paths]).each do |file|
+          puts "File to process = #{file}"
           ast = read_ast(file)
+          #puts "File AST = #{ast}"
           active_rules(options).each do |rule|
             rule_matches = matches(rule.recipe, ast, file)
 
@@ -71,9 +74,10 @@ module FoodCritic
               end
               rule_matches += matches(rule.cookbook, cookbook_dir(file))
             end
-
+            puts "rule_matches = #{rule_matches}"
             # Convert the matches into warnings
             rule_matches.each do |match|
+              puts "mach = #{match}"
               warnings << Warning.new(rule, {:filename => file}.merge(match))
               matched_rule_tags << rule.tags
             end
@@ -132,13 +136,14 @@ module FoodCritic
       dirs.each do |dir|
         exclusions = Dir.glob(exclude_paths.map{|p| File.join(dir, p)})
         if File.directory? dir
-          cookbook_glob = '{metadata.rb,{attributes,libraries,providers,recipes,resources}/*.rb}'
+          cookbook_glob = '{metadata.rb,{attributes,libraries,providers,recipes,resources,templates/**}/*.{rb,erb}}'
           files += (Dir.glob(File.join(dir, cookbook_glob)) +
             Dir.glob(File.join(dir, "*/#{cookbook_glob}")) - exclusions)
         else
           files << dir unless exclusions.include?(dir)
         end
       end
+      puts "files=#{files}"
       files
     end
 

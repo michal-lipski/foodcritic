@@ -39,6 +39,7 @@ module FoodCritic
       'FC030' => 'Cookbook contains debugger breakpoints',
       'FC031' => 'Cookbook without metadata file',
       'FC032' => 'Invalid notification timing',
+      'FC033' => 'Use variables in template instead of direct node attributes',
       'FCTEST001' => 'Test Rule'
     }
 

@@ -1,4 +1,5 @@
 .idea
+*.iml
 .yardoc
 *.html
 chef_dsl_metadata.json

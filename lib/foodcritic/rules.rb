@@ -242,6 +242,7 @@ rule "FC019", "Access node attributes in a consistent manner" do
     end
     types = [:string, :symbol, :vivified].map do |type|
       {:access_type => type, :count => files.map do |file|
+        #puts "019  file ast= #{file[:ast]}"
         attribute_access(file[:ast], :type => type, :ignore_calls => true,
                           :cookbook_dir => cookbook_dir).tap do |ast|
           if (! ast.empty?) and (! asts.has_key?(type))
@@ -253,6 +254,10 @@ rule "FC019", "Access node attributes in a consistent manner" do
     if asts.size > 1
       least_used = asts[types.min{|a,b| a[:count] <=> b[:count]}[:access_type]]
       least_used[:ast].map do |ast|
+        puts "------19 #{ast}"
+        puts "------19 #{ast.class.name}"
+        puts "------19 #{least_used[:path]}"
+        puts "------19 #{least_used[:path].class.name}"
         match(ast).merge(:filename => least_used[:path])
       end
     end
@@ -461,5 +466,38 @@ rule "FC032", "Invalid notification timing" do
         ! [:delayed, :immediate].include? notification[:timing]
       end
     end
+  end
+end
+
+rule "FC033", "Use variables in template instead of direct node attributes" do
+  cookbook do |cookbook_dir|
+    asts = {}
+    files = Dir["#{cookbook_dir}/templates/*/*.erb"].map do |template_file|
+      puts template_file
+      {:path => template_file, :ast => read_ast(template_file)}
+    end
+    #puts files.size
+    [:string, :symbol, :vivified].map do |type|
+      files.map do |file|
+        #puts "searching typr= #{type} "
+        #puts "ast= #{file[:ast]}"
+        #puts "searching in file= #{file[:path]}"
+
+        attribute_access(file[:ast], :type => type, :ignore_calls => false).each do |ast|
+
+          puts "found ast #{ast}"
+          asts = {:ast => ast, :path => file[:path]}
+        end
+      end
+    end
+    puts "Whole map = #{asts}"
+
+    puts "------33 #{asts[:ast]}"
+    puts "------33 #{asts[:ast].class.name}"
+    puts "------33 #{asts[:path]}"
+    puts "------33 #{asts[:path].class.name}"
+    match( asts[:ast]).merge(:filename => asts[:path])
+
+
   end
 end

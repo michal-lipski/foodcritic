@@ -580,6 +580,24 @@ Given /^a cookbook with a ([^ ]+) that (includes|does not include) a breakpoint$
   end
 end
 
+Given /^a cookbook with a template that (have|does not have) node attribute accessed via variables$/ do |have_attribute|
+  write_recipe %q{
+   log "hello"
+  }
+  case have_attribute
+    when 'does not have' then
+
+      write_file 'cookbooks/example/templates/default/foo.erb',
+                 %q{aaa = node['some']}.strip
+
+    when 'have' then
+      write_file 'cookbooks/example/templates/default/foo.erb',
+                 'foo = <%= some_variable %> node[' ']'
+    else
+      fail "Unrecognised option"
+  end
+end
+
 Given /^a cookbook with a single recipe for which the first hash (key|value) is an interpolated string$/ do |key_or_value|
   write_recipe case key_or_value
     when 'key' then %q{{"#{foo}" => 'bar', 'bar' => 'foo'}}
